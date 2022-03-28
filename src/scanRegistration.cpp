@@ -111,6 +111,36 @@ void removeClosedPointCloud(const pcl::PointCloud<PointT> &cloud_in,
     cloud_out.width = static_cast<uint32_t>(j);
     cloud_out.is_dense = true;
 }
+template <typename PointT>
+void removeOutOfROIPointCloud(const pcl::PointCloud<PointT> &cloud_in,
+                              pcl::PointCloud<PointT> &cloud_out, float thres_in, float thres_out)
+{
+    if (&cloud_in != &cloud_out)
+    {
+        cloud_out.header = cloud_in.header;
+        cloud_out.points.resize(cloud_in.points.size());
+    }
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < cloud_in.points.size(); ++i)
+    {
+        float squared_dist = cloud_in.points[i].x * cloud_in.points[i].x + cloud_in.points[i].y * cloud_in.points[i].y + cloud_in.points[i].z * cloud_in.points[i].z;
+
+        if (squared_dist < thres_in * thres_in || squared_dist > thres_out * thres_out)
+            continue;
+        cloud_out.points[j] = cloud_in.points[i];
+        j++;
+    }
+    if (j != cloud_in.points.size())
+    {
+        cloud_out.points.resize(j);
+    }
+
+    cloud_out.height = 1;
+    cloud_out.width = static_cast<uint32_t>(j);
+    cloud_out.is_dense = true;
+}
 
 void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
 {
@@ -135,7 +165,8 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     std::vector<int> indices;
 
     pcl::removeNaNFromPointCloud(laserCloudIn, laserCloudIn, indices); //empty point remove 
-    removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE, MAXIMUM_RANGE);//????
+    removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE);//????
+    removeOutOfROIPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE, MAXIMUM_RANGE);
 
     int cloudSize = laserCloudIn.points.size();
     //- is rotation is clockwise (velodyne)
