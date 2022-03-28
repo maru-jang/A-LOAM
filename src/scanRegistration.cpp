@@ -81,6 +81,7 @@ std::vector<ros::Publisher> pubEachScan;
 bool PUB_EACH_LINE = false;
 
 double MINIMUM_RANGE = 0.1; 
+double MAXIMUM_RANGE = 100.0; 
 
 template <typename PointT>
 void removeClosedPointCloud(const pcl::PointCloud<PointT> &cloud_in,
@@ -134,7 +135,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     std::vector<int> indices;
 
     pcl::removeNaNFromPointCloud(laserCloudIn, laserCloudIn, indices); //empty point remove 
-    removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE);//????
+    removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE, MAXIMUM_RANGE);//????
 
     int cloudSize = laserCloudIn.points.size();
     //- is rotation is clockwise (velodyne)
@@ -483,6 +484,7 @@ int main(int argc, char **argv)
     nh.param<int>("scan_line", N_SCANS, 16);
 
     nh.param<double>("minimum_range", MINIMUM_RANGE, 0.1);
+    nh.param<double>("maximum_range", MAXIMUM_RANGE, 100.0);
 
     printf("scan line number %d \n", N_SCANS);
 
